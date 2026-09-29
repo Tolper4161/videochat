@@ -44,7 +44,7 @@ GRANT ALL ON SCHEMA public TO padmin;
 ### 4. Backend — переменные окружения
 
 - [ ] Переименовать `.env.example` в `.env`
-- [ ] Открыть `.env` и заполнить:
+- [ ] Перенести `.env` директорию, где лежит `.env.example` и заполнить:
 
 ```env
 DB_ENGINE=django.db.backends.postgresql
