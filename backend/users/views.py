@@ -1,36 +1,91 @@
 from django.contrib.auth import update_session_auth_hash
-from django.http import JsonResponse
+from django.contrib.sessions.models import Session
+from django.http import HttpResponse, JsonResponse
 import json
 import re
 
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.forms.models import model_to_dict
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth import authenticate, login, logout
 
 from users.models import User
 
 
-@csrf_exempt  # ОБЯЗАТЕЛЬНО УБРАТЬ!!!
+# !!! ДОБАВИТЬ СОЗДАНЕИ НОВОЙ КОМНАТЫ ПРИ РЕГИСТРАЦИИ !!!
+@require_http_methods(["POST"])
 def save_user(request):
-    # Нужно ли очищать данные от sql-инъекций и т.п.?
     try:
+
+        # Проверяем, чтобы пользователь не был авторизован
+        if (request.user.is_authenticated):
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "authenticated",
+                        "message": "Пользователь уже авторизован"
+                    }
+                },
+                status=403
+            )
+
         data = json.loads(request.body)
 
         email = data["email"]
         username = data["username"]
         password = data["password"]
 
-        # Проверяем, что почта соответствует шаблону example@aexample.example
+        # Проверяем, что почта соответствует шаблону example@example.example
         if not (is_correct_email(email)):
-            return JsonResponse({"message": "Некорректная почта"}, status=400)
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "validation_error",
+                        "message": "Переданные данные не прошли проверку",
+                        "details": {
+                            "email": [
+                                "Почта не соответствует требованиям"
+                            ]
+                        }
+                    }
+                },
+                status=422
+            )
 
         # Проверяем, что почта и username незаняты в системе
         users = User.objects.all()
         for user in users:
             if user.email == email:
-                return JsonResponse({"message": "Почта уже занята"}, status=400)
+                return JsonResponse(
+                    {
+                        "error": {
+                            "code": "account_already_exists",
+                            "message": "Пользователь с такими данными уже существует",
+                            "details": {
+                                "email": [
+                                    "Этот email уже используется"
+                                ]
+                            }
+                        }
+                    },
+                    status=409
+                )
 
             if user.username == username:
-                return JsonResponse({"message": "Имя уже занято"}, status=400)
+                return JsonResponse(
+                    {
+                        "error": {
+                            "code": "account_already_exists",
+                            "message": "Пользователь с такими данными уже существует",
+                            "details": {
+                                "username": [
+                                    "Это имя уже используется"
+                                ]
+                            }
+                        }
+                    },
+                    status=409
+                )
 
         new_user = User(
             email=email,
@@ -39,90 +94,338 @@ def save_user(request):
         new_user.set_password(password)
         new_user.save()
 
-        return JsonResponse({"message": "Пользователь сохранен"}, status=200)
+        return JsonResponse({
+            "id": new_user.id,
+            "email": email,
+            "username": username
+        },
+            status=201
+        )
 
     except Exception as ex:
-        return JsonResponse({"message": ex}, status=400)
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "internal_error",
+                    "message": "Произошла внутренняя ошибка сервера"
+                }
+            },
+            status=500
+        )
 
 
-@csrf_exempt  # ОБЯЗАТЕЛЬНО УБРАТЬ!!!
+@require_http_methods(["POST"])
+def user_login(request):
+    try:
+        data = json.loads(request.body)
+        email = data["email"]
+        password = data["password"]
+
+        # Проверяем, чтобы текущий пользователь не был авторизован
+        if (request.user.is_authenticated):
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "authenticated",
+                        "message": "Пользователь уже авторизован"
+                    }
+                },
+                status=403
+            )
+
+        # Проверяем, чтобы пользователь с почтой email не был авторизован (нужно тестить)
+        if (is_active_session_by_email(email)):
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "authenticated",
+                        "message": "Пользователь уже авторизован"
+                    }
+                },
+                status=403
+            )
+
+        # Проверяем, что почта соответствует шаблону example@example.example
+        if not (is_correct_email(email)):
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "validation_error",
+                        "message": "Проверьте введенные данные",
+                        "details": {
+                            "email": [
+                                "Укажите корректный email"
+                            ]
+                        }
+                    }
+                },
+                status=422
+            )
+        # Аутентифицируем пользователя
+        user = authenticate(request, username=email, password=password)
+
+        # Если пароль неверный или логина не существует в БД
+        if user is None:
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "invalid_credentials",
+                        "message": "Введен неверный email или пароль"
+                    }
+                },
+                status=401
+            )
+        # Создаем сессию для пользователя
+        login(request, user)
+        return HttpResponse(status=200)
+
+    except Exception as ex:
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "internal_error",
+                    "message": "Произошла внутренняя ошибка сервера"
+                }
+            },
+            status=500
+        )
+
+
+@require_http_methods(["POST"])
+def user_logout(request):
+    try:
+        if not (request.user.is_authenticated):
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "not_authenticated",
+                        "message": "Пользователь не авторизован"
+                    }
+                },
+                status=401
+            )
+
+        # Аннулируем сессию текущего пользователя
+        logout(request)
+        return JsonResponse(
+            {
+                "message": "Выход выполнен"
+            },
+            status=200
+        )
+
+    except Exception as ex:
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "internal_error",
+                    "message": "Произошла внутренняя ошибка сервера"
+                }
+            },
+            status=500
+        )
+
+
+# !!! Добавить удаление комнаты при удалении аккаунта!!!
+@require_http_methods(["DELETE"])
 def delete_user_by_id(request, user_id):
     try:
-        if not(request.user.is_authenticated):
-            return JsonResponse({"message": f'Отклонено: для совершения действия в системе необходима авторизация'}, status=401)
+        current_user = request.user
+        if not (current_user.is_authenticated):
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "not_authenticated",
+                        "message": "Пользователь не авторизован"
+                    }
+                },
+                status=401
+            )
+
+        if not (User.objects.filter(pk=user_id).exists()):
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "validation_error",
+                        "message": "Переданные данные не прошли проверку",
+                        "details": {
+                            "id": [
+                                "Не удалось удалить аккаунт"
+                            ]
+                        }
+                    }
+                },
+                status=422
+            )
 
         # Проверяем, что запрос на удаление пользователя пришел именно от этого пользователя
         current_user_to_delete = User.objects.get(id=int(user_id))
 
-        if (current_user_to_delete.username != request.user.username):
-            return JsonResponse({"message": f'Отклонено: нет доступа для совершения действия в системе'}, status=403)
+        if (current_user_to_delete.username != current_user.username):
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "forbidden",
+                        "message": "Недостаточно прав"
+                    }
+                },
+                status=403
+            )
 
-        if not(User.objects.filter(pk=user_id).exists()):
-            return JsonResponse({"message": f'Пользователя с id {user_id} нет в Базе Данных'}, status=400)
-
+        logout(request)
         current_user_to_delete.delete()
-        return JsonResponse({"message": f'Пользователь с id {user_id} удален'}, status=200)
+        return JsonResponse(
+            {
+                "id": current_user.id,
+                "email": current_user.email,
+                "username": current_user.username
+            },
+            status=200
+        )
 
     except Exception as ex:
-        return JsonResponse({"message": ex}, status=400)
-
-@csrf_exempt  # ОБЯЗАТЕЛЬНО УБРАТЬ!!!
-def get_user_data_by_id(request, user_id):
-    try:
-        if not (request.user.is_authenticated):
-            return JsonResponse({"message": f'Отклонено: для совершения действия в системе необходима авторизация'}, status=401)
-
-        current_user_to_data = User.objects.get(id=int(user_id))
-
-        if current_user_to_data.username != request.user.username:
-            return JsonResponse({"message": f'Отклонено: нет доступа для совершения действия в системе'}, status=403)
-
-        response = model_to_dict(current_user_to_data)
-        return JsonResponse(response)
-
-    except Exception as ex:
-        return JsonResponse({"message": ex}, status=400)
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "internal_error",
+                    "message": "Произошла внутренняя ошибка сервера"
+                }
+            },
+            status=500
+        )
 
 
-@csrf_exempt  # ОБЯЗАТЕЛЬНО УБРАТЬ!!!
-def set_new_email(request):
+@require_http_methods(["GET"])
+def get_user_data(request):
     try:
         current_user = request.user
         if not (current_user.is_authenticated):
-            return JsonResponse({"message": f'Отклонено: для совершения действия в системе необходима авторизация'}, status=401)
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "not_authenticated",
+                        "message": "Пользователь не авторизован"
+                    }
+                },
+                status=401
+            )
 
-        current_username = current_user.username
-        email = json.loads(request.body)["email"]
-
-        # Проверяем, что почта незанята в системе
-        users = User.objects.all()
-        for user in users:
-            if user.email == email:
-                return JsonResponse({"message": "Почта уже занята"}, status=400)
-
-        User.objects.filter(username=current_username).update(email=email)
-
-        current_user.email = email
-        response = model_to_dict(current_user)
-        return JsonResponse(response)
+        return JsonResponse({
+            "id": current_user.id,
+            "email": current_user.email,
+            "username": current_user.username
+        },
+            status=200
+        )
 
     except Exception as ex:
-        return JsonResponse({"message": ex}, status=400)
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "internal_error",
+                    "message": "Произошла внутренняя ошибка сервера"
+                }
+            },
+            status=500
+        )
 
 
-@csrf_exempt  # ОБЯЗАТЕЛЬНО УБРАТЬ!!!
-def set_new_password(request):
+# Пока почту не обновляем, только имя пользователя
+@require_http_methods(["PATCH"])
+def update_username(request):
     try:
         current_user = request.user
-        if not(current_user.is_authenticated):
-            return JsonResponse({"message": f'Отклонено: для совершения действия в системе необходима авторизация'}, status=401)
+        if not (current_user.is_authenticated):
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "not_authenticated",
+                        "message": "Пользователь не авторизован"
+                    }
+                },
+                status=401
+            )
+
+        current_username = current_user.username
+        username = json.loads(request.body)["username"]
+
+        # Проверяем, что username незанято в системе
+        users = User.objects.all()
+        for user in users:
+            if user.username == username:
+                return JsonResponse(
+                    {
+                        "error": {
+                            "code": "account_already_exists",
+                            "message": "Пользователь с такими данными уже существует",
+                            "details": {
+                                "username": [
+                                    "Это имя уже используется"
+                                ]
+                            }
+                        }
+                    },
+                    status=409
+                )
+
+        User.objects.filter(username=current_username).update(username=username)
+
+        current_user.username = username
+        return JsonResponse(
+            {
+                "id": current_user.id,
+                "email": current_user.email,
+                "username": username
+            },
+            status=200
+        )
+
+    except Exception as ex:
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "internal_error",
+                    "message": "Произошла внутренняя ошибка сервера"
+                }
+            },
+            status=500
+        )
+
+
+@require_http_methods(["PATCH"])
+def update_password(request):
+    try:
+        current_user = request.user
+        if not (current_user.is_authenticated):
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "not_authenticated",
+                        "message": "Пользователь не авторизован"
+                    }
+                },
+                status=401
+            )
 
         data = json.loads(request.body)
         old_password = data["old_password"]
         new_password = data["new_password"]
 
-        if not(current_user.check_password(old_password)):
-            return JsonResponse({"message": f'Неверный текущий пароль'}, status=400)
+        if not (current_user.check_password(old_password)):
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "validation_error",
+                        "message": "Переданные данные не прошли проверку",
+                        "details": {
+                            "password": [
+                                "Неверные данные"
+                            ]
+                        }
+                    }
+                },
+                status=400
+            )
 
         current_user.set_password(new_password)
         current_user.save()
@@ -130,12 +433,41 @@ def set_new_password(request):
         # Обновляем сессию, чтобы данные пользователя обновились на сервере и его не разлогинило
         update_session_auth_hash(request, current_user)
 
-        response = model_to_dict(current_user)
-        return JsonResponse(response)
+        return JsonResponse(
+            {
+                "id": current_user.id,
+                "email": current_user.email,
+                "username": current_user.username
+            },
+            status=200
+        )
 
     except Exception as ex:
-        return JsonResponse({"message": ex}, status=400)
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "internal_error",
+                    "message": "Произошла внутренняя ошибка сервера"
+                }
+            },
+            status=500
+        )
 
 
 def is_correct_email(email):
     return re.fullmatch(".+@.+\\..+", email)
+
+
+def is_active_session_by_email(email):
+    if (User.objects.filter(email=email).exists()):
+        return False
+
+    current_user = User.objects.get(email=email)
+    active_sessions = Session.objects.filter(expire_date__gt=timezone.now())
+
+    for session in active_sessions:
+        session_data = session.get_decoded()
+        if session_data.get("_auth_user_id") == str(current_user.id):
+            return True
+
+    return False

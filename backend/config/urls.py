@@ -16,13 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from users.views import save_user, get_user_data_by_id, delete_user_by_id, set_new_email, set_new_password
+from users.views import save_user, get_user_data, delete_user_by_id, update_username, update_password, user_login, user_logout
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/users/registration', save_user),
-    path('api/v1/users/delete/<user_id>', delete_user_by_id),
-    path('api/v1/users/profile/<user_id>', get_user_data_by_id),
-    path('api/v1/users/settings/password', set_new_password),
-    path('api/v1/users/settings/email', set_new_email)
+    path('api/users/register', save_user),
+    path('api/users/login', user_login),
+    path('api/users/logout', user_logout),
+    path('api/users/delete/<user_id>', delete_user_by_id),
+    path('api/users/account', get_user_data),
+    path('api/users/edit/username', update_username),
+    path('api/users/edit/password', update_password)
 ]
