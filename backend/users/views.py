@@ -5,7 +5,6 @@ import json
 import re
 
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth import authenticate, login, logout
 
@@ -356,11 +355,11 @@ def update_username(request):
                 return JsonResponse(
                     {
                         "error": {
-                            "code": "account_already_exists",
-                            "message": "Пользователь с такими данными уже существует",
+                            "code": "username_already_exists",
+                            "message": "Данное имя пользователя уже занято",
                             "details": {
                                 "username": [
-                                    "Это имя уже используется"
+                                    "Выберите другое имя пользователя"
                                 ]
                             }
                         }
@@ -424,7 +423,7 @@ def update_password(request):
                         }
                     }
                 },
-                status=400
+                status=422
             )
 
         current_user.set_password(new_password)
