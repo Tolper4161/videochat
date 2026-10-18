@@ -1,10 +1,8 @@
 from django.contrib.auth import update_session_auth_hash
-from django.contrib.sessions.models import Session
 from django.http import HttpResponse, JsonResponse
 import json
 import re
 
-from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth import authenticate, login, logout
 
@@ -44,6 +42,23 @@ def save_user(request):
                         "details": {
                             "email": [
                                 "Почта не соответствует требованиям"
+                            ]
+                        }
+                    }
+                },
+                status=422
+            )
+
+        # Проверяем, что длина пароля не менее 8 символов
+        if (len(password) < 8):
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "validation_error",
+                        "message": "Переданные данные не прошли проверку",
+                        "details": {
+                            "password": [
+                                "Длина пароля должна быть не менее 8 символов"
                             ]
                         }
                     }
@@ -93,6 +108,9 @@ def save_user(request):
         new_user.set_password(password)
         new_user.save()
 
+        # Сразу после регистрации создаем сессию пользователя
+        login(request, new_user)
+
         return JsonResponse({
             "id": new_user.id,
             "email": email,
@@ -132,18 +150,6 @@ def user_login(request):
                 status=403
             )
 
-        # Проверяем, чтобы пользователь с почтой email не был авторизован (нужно тестить)
-        if (is_active_session_by_email(email)):
-            return JsonResponse(
-                {
-                    "error": {
-                        "code": "authenticated",
-                        "message": "Пользователь уже авторизован"
-                    }
-                },
-                status=403
-            )
-
         # Проверяем, что почта соответствует шаблону example@example.example
         if not (is_correct_email(email)):
             return JsonResponse(
@@ -160,6 +166,7 @@ def user_login(request):
                 },
                 status=422
             )
+
         # Аутентифицируем пользователя
         user = authenticate(request, username=email, password=password)
 
@@ -241,6 +248,19 @@ def delete_user_by_id(request, user_id):
                 status=401
             )
 
+        # Проверяем, что запрос на удаление пользователя пришел именно от этого пользователя
+        user_id = int(user_id)
+        if (user_id != current_user.id):
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "forbidden",
+                        "message": "Недостаточно прав"
+                    }
+                },
+                status=403
+            )
+
         if not (User.objects.filter(pk=user_id).exists()):
             return JsonResponse(
                 {
@@ -257,25 +277,11 @@ def delete_user_by_id(request, user_id):
                 status=422
             )
 
-        # Проверяем, что запрос на удаление пользователя пришел именно от этого пользователя
-        current_user_to_delete = User.objects.get(id=int(user_id))
-
-        if (current_user_to_delete.username != current_user.username):
-            return JsonResponse(
-                {
-                    "error": {
-                        "code": "forbidden",
-                        "message": "Недостаточно прав"
-                    }
-                },
-                status=403
-            )
-
         logout(request)
-        current_user_to_delete.delete()
+        current_user.delete()
         return JsonResponse(
             {
-                "id": current_user.id,
+                "id": user_id,
                 "email": current_user.email,
                 "username": current_user.username
             },
@@ -329,7 +335,6 @@ def get_user_data(request):
         )
 
 
-# Пока почту не обновляем, только имя пользователя
 @require_http_methods(["PATCH"])
 def update_username(request):
     try:
@@ -345,7 +350,6 @@ def update_username(request):
                 status=401
             )
 
-        current_username = current_user.username
         username = json.loads(request.body)["username"]
 
         # Проверяем, что username незанято в системе
@@ -367,7 +371,7 @@ def update_username(request):
                     status=409
                 )
 
-        User.objects.filter(username=current_username).update(username=username)
+        User.objects.filter(pk=current_user.id).update(username=username)
 
         current_user.username = username
         return JsonResponse(
@@ -417,8 +421,25 @@ def update_password(request):
                         "code": "validation_error",
                         "message": "Переданные данные не прошли проверку",
                         "details": {
-                            "password": [
+                            "old_password": [
                                 "Неверные данные"
+                            ]
+                        }
+                    }
+                },
+                status=422
+            )
+
+        # Проверяем, чтобы длина нового пароля была от 8 символов
+        if (len(new_password) < 8):
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "validation_error",
+                        "message": "Переданные данные не прошли проверку",
+                        "details": {
+                            "new_password": [
+                                "Длина пароля должна быть не менее 8 символов"
                             ]
                         }
                     }
@@ -454,19 +475,6 @@ def update_password(request):
 
 
 def is_correct_email(email):
+    if (email.count('@') != 1): return False
+    if (' ' in email): return False
     return re.fullmatch(".+@.+\\..+", email)
-
-
-def is_active_session_by_email(email):
-    if (User.objects.filter(email=email).exists()):
-        return False
-
-    current_user = User.objects.get(email=email)
-    active_sessions = Session.objects.filter(expire_date__gt=timezone.now())
-
-    for session in active_sessions:
-        session_data = session.get_decoded()
-        if session_data.get("_auth_user_id") == str(current_user.id):
-            return True
-
-    return False
