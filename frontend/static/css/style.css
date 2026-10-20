@@ -1,0 +1,46 @@
+:root {
+    --gray-1: #0E0E10;
+    --gray-2: #232227;
+    --gray-3: #3E3D45;
+    --gray-4: #63636F;
+    --gray-5: #9A9AA6;
+    --white:  #FFFFFF;
+    --accent: #1D87EB;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0px;
+    background-color: var(--gray-1);
+    color: var(--gray-5);
+    font-family: 'Inter';
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+    margin: 0px;
+    letter-spacing: -1%;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 600;
+    line-height: 1.5em;
+    color: var(--white);
+}
+
+.container {
+    padding: 1.5rem;
+}
