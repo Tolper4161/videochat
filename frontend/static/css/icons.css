@@ -1,0 +1,26 @@
+.icon::after {
+    content: "";
+    display: inline-block;
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.icon-home::after {
+    background: url(../img/icons/icon-home.svg);
+    background-size: cover;
+}
+
+.icon-videochat::after {
+    background: url(../img/icons/icon-videochat.svg);
+    background-size: cover;
+}
+
+.icon-bell::after {
+    background: url(../img/icons/icon-bell.svg);
+    background-size: cover;
+}
+
+.icon-moon::after {
+    background: url(../img/icons/icon-moon.svg);
+    background-size: cover;
+}

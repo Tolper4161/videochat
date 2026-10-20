@@ -41,6 +41,17 @@ h6 {
     color: var(--white);
 }
 
+hr {
+    height: 1px;
+    border: 0px;
+    margin: 0px;
+    background-color: var(--gray-3);
+}
+
+button {
+    cursor: pointer;
+}
+
 .container {
     padding: 1.5rem;
 }
