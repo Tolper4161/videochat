@@ -13,3 +13,4 @@ class WebSocketType(Enum):
     CAMERA_CHANGED = "camera_changed",
     CONSUMER_TYPE = "consumer_type",
     ERROR = "error"
+    EXCLUDED_PARTICIPANT_ID = "excluded_participant_id"

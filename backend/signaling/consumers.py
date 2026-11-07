@@ -1,8 +1,9 @@
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
-from signaling.models import RoomPermissionsService, GroupException
+from signaling.models import RoomParticipantService, GroupException
 from ws_types import WebSocketType
 import json
+import uuid
 
 # consumer_type - для отправки типа запроса пользователям группы
 # type при отправке сообщения пользователям группы
@@ -21,7 +22,7 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
 
     @classmethod
     def initialize_room_service(cls):
-        if cls.room_service is None: cls.room_service = RoomPermissionsService()
+        if cls.room_service is None: cls.room_service = RoomParticipantService()
 
     # При подключении клиента к WebSocket
     async def connect(self):
@@ -29,7 +30,7 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
             self.user = self.scope["user"]
 
             # Если запрос на подключение пришел от неавторизованного пользователя
-            if not(self.user.is_authenticated()):
+            if not(self.user.is_authenticated):
                 await self.close(code=4001)
                 return
 
@@ -48,7 +49,7 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
                 self.channel_name
             )
 
-            # Удаляем запись о consumer из RoomPermissionsService
+            # Удаляем запись о consumer из RoomParticipantService
             await self.room_service.delete_participant(self.room_uuid, self.participant_id)
 
             # Если отключается владелец комнаты
@@ -57,6 +58,7 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
 
                 await self.send_everyone(
                     "chat_message",
+                    str(self.participant_id),
                     "call_ended",
                     {
                         "reason": "owner_ended"
@@ -84,9 +86,10 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
                     # Уведомляем участников группы о том, что подключился новый пользователь
                     await self.send_everyone(
                         "chat_message",
+                        str(self.participant_id),
                         "participant_joined",
                         {
-                            "participant_id": self.participant_id,
+                            "participant_id": str(self.participant_id),
                             "username": self.user.username,
                             "micro_muted": False,
                             "camera_enabled": False
@@ -96,13 +99,15 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
                 case WebSocketType.LEAVE:
                     if self.participant_id is None:
                         await self.send_json(self.json_error(4400, "Пользователь не состоит ни в одной комнате", message_type))
+                        return
 
                     # Уведомляем всех участников группы об отключении пользователя
                     await self.send_everyone(
                         "chat_message",
+                        str(self.participant_id),
                         "participant_left",
                         {
-                            "participant_id": self.participant_id
+                            "participant_id": str(self.participant_id)
                         }
                     )
 
@@ -111,6 +116,7 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
                 case WebSocketType.END_CALL:
                     if self.participant_id is None:
                         await self.send_json(self.json_error(4400, "Пользователь не состоит ни в одной комнате", message_type))
+                        return
 
                     # Отключаем владельца комнаты
                     await self.end_call()
@@ -118,8 +124,24 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
                 case WebSocketType.OFFER:
                     if self.participant_id is None:
                         await self.send_json(self.json_error(4400, "Пользователь не состоит ни в одной комнате", message_type))
+                        return
 
-                    await self.send_everyone(
+                    to_participant_id = uuid.UUID(data["payload"]["to"])
+
+                    # Проверяем, чтобы не было попытки установить соединение с самим собой
+                    if self.participant_id == to_participant_id:
+                        await self.send_json(self.json_error(4403, "Попытка установить соединение с самим собой", message_type))
+                        return
+
+                    # Проверяем, что отправитель и получатель состоят в одной комнате
+                    if not(await self.room_service.is_consumers_in_same_room(self.room_uuid, self.participant_id, to_participant_id)):
+                        await self.send_json(self.json_error(4400, "Пользователи не состоят в одной комнате", message_type))
+                        return
+
+                    # Отправляем offer конкретному пользователю
+                    to_channel_name = self.room_service.get_user_channel_name(self.room_uuid, to_participant_id)
+                    await self.send_specific_consumer(
+                        to_channel_name,
                         "chat_message",
                         WebSocketType.OFFER,
                         {
@@ -131,8 +153,25 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
                 case WebSocketType.ANSWER:
                     if self.participant_id is None:
                         await self.send_json(self.json_error(4400, "Пользователь не состоит ни в одной комнате", message_type))
+                        return
 
-                    await self.send_everyone(
+                    to_participant_id = uuid.UUID(data["payload"]["to"])
+
+                    # Проверяем, чтобы не было попытки установить соединение с самим собой
+                    if self.participant_id == to_participant_id:
+                        await self.send_json(
+                            self.json_error(4403, "Попытка установить соединение с самим собой", message_type))
+                        return
+
+                    # Проверяем, что отправитель и получатель состоят в одной комнате
+                    if not(await self.room_service.is_consumers_in_same_room(self.room_uuid, self.participant_id, to_participant_id)):
+                        await self.send_json(self.json_error(4400, "Пользователи не состоят в одной комнате", message_type))
+                        return
+
+                    # Отправляем answer конкретному пользователю
+                    to_channel_name = self.room_service.get_user_channel_name(self.room_uuid, to_participant_id)
+                    await self.send_specific_consumer(
+                        to_channel_name,
                         "chat_message",
                         WebSocketType.ANSWER,
                         {
@@ -144,22 +183,45 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
                 case WebSocketType.ICE_CANDIDATE:
                     if self.participant_id is None:
                         await self.send_json(self.json_error(4400, "Пользователь не состоит ни в одной комнате", message_type))
+                        return
 
-                    await self.send_everyone(
+                    to_participant_id = uuid.UUID(data["payload"]["to"])
+
+                    # Проверяем, чтобы не было попытки установить соединение с самим собой
+                    if self.participant_id == to_participant_id:
+                        await self.send_json(
+                            self.json_error(4403, "Попытка установить соединение с самим собой", message_type))
+                        return
+
+                    # Проверяем, что отправитель и получатель состоят в одной комнате
+                    if not(await self.room_service.is_consumers_in_same_room(self.room_uuid, self.participant_id, to_participant_id)):
+                        await self.send_json(self.json_error(4400, "Пользователи не состоят в одной комнате", message_type))
+                        return
+
+                    # Отправляем ice-candidate конкретному пользователю
+                    to_channel_name = self.room_service.get_user_channel_name(self.room_uuid, to_participant_id)
+                    await self.send_specific_consumer(
+                        to_channel_name,
                         "chat_message",
                         WebSocketType.ICE_CANDIDATE,
-                        data['payload']
+                        {
+                            "to": to_participant_id,
+                            "candidate": data['payload']['candidate']
+                        }
                     )
 
                 case WebSocketType.MUTE_CHANGED:
                     if self.participant_id is None:
                         await self.send_json(self.json_error(4400, "Пользователь не состоит ни в одной комнате", message_type))
+                        return
 
+                    await self.room_service.set_micro_status(self.room_uuid, self.participant_id, data['payload']['muted'])
                     await self.send_everyone(
                         "chat_message",
+                        str(self.participant_id),
                         "mute_changed",
                         {
-                            "participant_id": self.participant_id,
+                            "participant_id": str(self.participant_id),
                             "muted": bool(data['payload']['muted'])
                         }
                     )
@@ -167,12 +229,15 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
                 case WebSocketType.CAMERA_CHANGED:
                     if self.participant_id is None:
                         await self.send_json(self.json_error(4400, "Пользователь не состоит ни в одной комнате", message_type))
+                        return
 
+                    await self.room_service.set_camera_status(self.room_uuid, self.participant_id, data['payload']['enabled'])
                     await self.send_everyone(
                         "chat_message",
+                        str(self.participant_id),
                         "camera_changed",
                         {
-                            "participant_id": self.participant_id,
+                            "participant_id": str(self.participant_id),
                             "enabled": bool(data['payload']['enabled'])
                         }
                     )
@@ -186,7 +251,8 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
             self.room_uuid = self.scope['url_route']['kwargs']['room_uuid']
             self.room_group_name = f'room_{self.room_uuid}'
 
-            self.participant_id = await self.room_service.add_owner(self.room_uuid, self.user.id)
+            self.participant_id = await self.room_service.add_owner(self.room_uuid, self.user.id,
+                                                                    self.channel_name, self.user.username)
 
             # Создаём группу и подключаемся к ней
             await self.channel_layer.group_add(
@@ -195,7 +261,7 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
             )
 
             # Отправляем первое сообщение с информацией о подключении
-            await self.send_json(self, {
+            await self.send_json({
                 "type": "call_started"
             })
 
@@ -219,8 +285,11 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
             self.room_uuid = self.scope['url_route']['kwargs']['room_uuid']
             self.room_group_name = f'room_{self.room_uuid}'
 
-            self.participant_id = await self.room_service.add_consumer(self.room_uuid, self.user.id)
+            # Получаем информацию о тех, кто состоит в группе
+            participants_array = await self.room_service.get_participants_by_room_id(self.room_uuid)
 
+            self.participant_id = await self.room_service.add_consumer(self.room_uuid, self.user.id,
+                                                                       self.channel_name, self.user.username)
             # Подключаемся к группе
             await self.channel_layer.group_add(
                 self.room_group_name,
@@ -228,18 +297,11 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
             )
 
             # Отправляем первое сообщение с информацией о подключении
-            await self.send_json(self, {
+            await self.send_json({
                 "type": "joined",
                 "payload": {
-                    "participant_id": self.participant_id,
-                    "participants": [
-                        {
-                            "username": self.user.username,
-                            "participant_id": self.participant_id,
-                            "micro_muted": False,
-                            "camera_enabled": False
-                        }
-                    ]
+                    "participant_id": str(self.participant_id),
+                    "participants": participants_array
                 }
             })
 
@@ -271,12 +333,28 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
         else:
             await self.send_json(self.json_error(4003, "Нет прав для завершения звонка", WebSocketType.END_CALL))
 
-    # Метод для отправки сообщений всем участникам группы
-    async def send_everyone(self, method, consumer_type, payload):
+    # Метод для отправки сообщений всем участникам группы.
+    # WebSocketType.EXCLUDED_PARTICIPANT_ID - participant_id того consumer,
+    # которому не должно прийти сообщение от сервера.
+    # Если excluded_participant_id = "", то сообщение должно быть доставлено всем участникам группы.
+    async def send_everyone(self, method, excluded_participant_id, consumer_type, payload):
 
         # Отправляем сообщение в группу
         await self.channel_layer.group_send(
             self.room_group_name,
+            {
+                'type': method,
+                WebSocketType.EXCLUDED_PARTICIPANT_ID: str(excluded_participant_id),
+                WebSocketType.CONSUMER_TYPE: consumer_type,
+                'payload': payload
+            }
+        )
+
+    async def send_specific_consumer(self, channel_name, method, consumer_type, payload):
+
+        # Метод отсылает сообщение не всем подключениям в группе, а только определенному участнику
+        await self.channel_layer.send(
+            channel_name,
             {
                 'type': method,
                 WebSocketType.CONSUMER_TYPE: consumer_type,
@@ -288,6 +366,10 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
         try:
             consumer_type = event[WebSocketType.CONSUMER_TYPE]
             payload = event['payload']
+            excluded_participant_id = event[WebSocketType.EXCLUDED_PARTICIPANT_ID]
+
+            if len(excluded_participant_id) != 0:
+                if str(self.participant_id) == excluded_participant_id: return
 
             match consumer_type:
 

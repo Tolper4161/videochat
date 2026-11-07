@@ -12,7 +12,6 @@ from users.models import User
 from rooms.models import Room
 
 
-# !!! ДОБАВИТЬ СОЗДАНЕИ НОВОЙ КОМНАТЫ ПРИ РЕГИСТРАЦИИ !!!
 @require_http_methods(["POST"])
 def save_user(request):
     try:
