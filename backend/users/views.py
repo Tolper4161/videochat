@@ -114,7 +114,7 @@ def save_user(request):
         login(request, new_user)
 
         # Сразу после регистрации создаем комнату
-        new_room = Room(uuid.uuid4(), "room_" + username, new_user)
+        new_room = Room(uuid.uuid4(), "room_" + username, new_user.id)
         new_room.save()
 
         return JsonResponse({
@@ -126,6 +126,7 @@ def save_user(request):
         )
 
     except Exception as ex:
+        print(ex)
         return JsonResponse(
             {
                 "error": {

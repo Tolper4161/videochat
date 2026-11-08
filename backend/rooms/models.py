@@ -10,7 +10,7 @@ class Room(models.Model):
     title = models.CharField(max_length=255)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name="created_rooms",
     )
     created_at = models.DateTimeField(auto_now_add=True)

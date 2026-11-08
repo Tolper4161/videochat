@@ -18,11 +18,25 @@ class Participant:
         self.user_id = user_id
         self.room_id = room_id
         self.channel_name = channel_name
-        self.username = username,
+        self.username = username
         self.joined_at = joined_at
         self.is_owner = is_owner
         self.micro_muted = micro_muted
         self.camera_enabled = camera_enabled
+
+    def __str__(self):
+        role = "Owner" if self.is_owner else "Participant"
+
+        mic = "Muted" if self.micro_muted else "Active"
+        cam = "On" if self.camera_enabled else "Off"
+
+        return (
+            f"<{role}: {self.username} (User ID: {self.user_id}) | "
+            f"Mic: {mic}, Cam: {cam}>"
+        )
+
+    def __repr__(self):
+        return self.__str__()
 
 
 # На всех consumers будет один единственный RoomParticipantService
@@ -39,7 +53,6 @@ class RoomParticipantService:
 
     async def delete_room(self, room_id):
         async with self.locker:
-
             if room_id in self.consumers:
                 del self.consumers[room_id]
                 return True
@@ -85,11 +98,11 @@ class RoomParticipantService:
     async def add_owner(self, room_id, user_id, channel_name, username):
         async with self.locker:
 
+            # Если комнату пытается создать не её владелец
+            if not (await Room.async_is_owner(user_id, room_id)): raise GroupException(4003, "Отказано в доступе")
+
             # Если комната уже существует
             if room_id in self.consumers: raise GroupException(4409, "Комната уже существует")
-
-            # Если комнату пытается создать не её владелец
-            if not(await Room.async_is_owner(user_id, room_id)): raise GroupException(4003, "Отказано в доступе")
 
             # Если пользователь уже состоит в какой-нибудь комнате
             if self.user_has_active_call(user_id): raise GroupException(4423, "Пользователь уже "
@@ -126,6 +139,11 @@ class RoomParticipantService:
 
     async def get_participants_by_room_id(self, room_id):
         async with self.locker:
+
+            ## Проверяем, что комната вообще существует
+            if room_id not in self.consumers:
+                raise GroupException(4409, "Комнаты для подключения не существует")
+
             participants_array = []
             for key in self.consumers[room_id]:
                 current_participant = self.consumers[room_id][key]
