@@ -1,12 +1,6 @@
 .nav {
-    padding-left: 1rem;
-    padding-right: 1rem;
-    padding-top: 1.5rem;
-    padding-bottom: 2.5rem;
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    bottom: 0px;
+    padding: 1rem;
+    padding-top: 0px;
 }
 
 .nav__content {
@@ -16,13 +10,15 @@
     height: 100%;
 }
 
-.nav__top {
+.nav__header {
     display: flex;
     flex-flow: column;
     gap: 1.5rem;
 }
 
-.nav-logo-link {}
+.nav-logo-link {
+    line-height: 0px;
+}
 
 .nav-logo {}
 
@@ -43,11 +39,6 @@
 
 .nav-list-item {}
 
-.btn-icon {
-    line-height: 0px;
-    transition: 0.25s;
-}
-
 .btn-icon:hover {
     background-color: var(--gray-3);
 }
@@ -64,4 +55,17 @@
 .nav-btn_active {
     background-color: var(--gray-3);
     cursor: auto;
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: 5rem 322px 1fr;
+    align-items: flex-start;
+    height: 100vh;
+    padding: 1.5rem;
+    padding-left: 0px;
+}
+
+.options {
+    margin-left: 1.5rem;
 }

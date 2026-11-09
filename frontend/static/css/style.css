@@ -6,9 +6,13 @@
     --gray-5: #9A9AA6;
     --white:  #FFFFFF;
     --accent: #1D87EB;
+    --green:  #34C759;
+    --red:    #E94F37;
 }
 
-* {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
 }
 
@@ -25,8 +29,12 @@ h3,
 h4,
 h5,
 h6,
-p {
+p,
+b,
+span,
+button {
     margin: 0px;
+    font-size: 1rem;
     letter-spacing: -1%;
 }
 
@@ -49,9 +57,15 @@ hr {
 }
 
 button {
+    background-color: transparent;
+    font-family: 'Inter';
     cursor: pointer;
 }
 
 .container {
     padding: 1.5rem;
+}
+
+.br-sm {
+    display: none;
 }
