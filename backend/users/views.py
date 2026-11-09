@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth import update_session_auth_hash
 from django.http import HttpResponse, JsonResponse
 import json
@@ -7,9 +9,9 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth import authenticate, login, logout
 
 from users.models import User
+from rooms.models import Room
 
 
-# !!! ДОБАВИТЬ СОЗДАНЕИ НОВОЙ КОМНАТЫ ПРИ РЕГИСТРАЦИИ !!!
 @require_http_methods(["POST"])
 def save_user(request):
     try:
@@ -111,6 +113,10 @@ def save_user(request):
         # Сразу после регистрации создаем сессию пользователя
         login(request, new_user)
 
+        # Сразу после регистрации создаем комнату
+        new_room = Room(uuid.uuid4(), "room_" + username, new_user.id)
+        new_room.save()
+
         return JsonResponse({
             "id": new_user.id,
             "email": email,
@@ -120,6 +126,7 @@ def save_user(request):
         )
 
     except Exception as ex:
+        print(ex)
         return JsonResponse(
             {
                 "error": {

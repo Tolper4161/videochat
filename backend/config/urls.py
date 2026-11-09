@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from users.views import save_user, get_user_data, delete_user_by_id, update_username, update_password, user_login, user_logout
+from rooms.views import get_room_general, update_room_title
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,5 +28,8 @@ urlpatterns = [
     path('api/users/delete/<user_id>', delete_user_by_id),
     path('api/users/account', get_user_data),
     path('api/users/edit/username', update_username),
-    path('api/users/edit/password', update_password)
+    path('api/users/edit/password', update_password),
+
+    path('api/rooms/general', get_room_general),
+    path('api/rooms/edit', update_room_title),
 ]
