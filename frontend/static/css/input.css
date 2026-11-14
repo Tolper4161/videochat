@@ -1,0 +1,12 @@
+input {
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--gray-4);
+    border-radius: 0.75rem;
+    outline: 0px;
+    background-color: var(--gray-3);
+    font-size: 1rem;
+    font-family: 'Inter';
+    color: var(--gray-5);
+    line-height: 1.25em;
+    letter-spacing: -1%;
+}

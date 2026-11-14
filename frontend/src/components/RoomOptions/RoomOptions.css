@@ -1,0 +1,44 @@
+.room-options {
+    display: flex;
+    gap: 1.5rem;
+    padding-top: 2rem;
+}
+
+.room-options__left {
+    width: 100%;
+}
+
+.room-options__qr {
+    max-width: 220px;
+    max-height: 220px;
+    border-radius: 0.75rem;
+}
+
+/* .room-options__header {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--gray-3);
+}
+
+.room-options__main {
+    padding-bottom: 1rem;
+}
+ */
+.room-options__form {
+    display: grid;
+    grid-template-columns: 212px 1fr;
+    align-items: center;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+}
+
+.room-options__btns {
+    display: flex;
+    gap: 1rem;
+}
+
+.room-options-btn {
+    flex: 1;
+    font-weight: 500;
+}

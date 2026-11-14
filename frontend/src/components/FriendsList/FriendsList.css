@@ -1,0 +1,25 @@
+.friends {
+    padding: 0px;
+    padding-top: 0.5rem;
+    margin: 0px;
+    list-style-type: none;
+}
+
+.friend {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.5rem 0px;
+}
+
+.friend__avatar {
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--gray-4);
+    border-radius: 100%;
+}
+
+.friend__username {
+    font-size: 0.875rem;
+    line-height: 1.5em;
+}

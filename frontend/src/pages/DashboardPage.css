@@ -1,0 +1,16 @@
+.btn-icon:hover {
+    background-color: var(--gray-3);
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: 5rem 322px 1fr;
+    align-items: flex-start;
+    height: 100vh;
+    padding: 1.5rem;
+    padding-left: 0px;
+}
+
+.options {
+    margin-left: 1.5rem;
+}

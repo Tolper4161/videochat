@@ -1,0 +1,91 @@
+.icon::before {
+    content: "";
+    display: inline-block;
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.icon-home::before {
+    background: url(../img/icons/icon-home.svg);
+    background-size: cover;
+}
+
+.icon-videochat::before {
+    background: url(../img/icons/icon-videochat.svg);
+    background-size: cover;
+}
+
+.icon-bell::before {
+    background: url(../img/icons/icon-bell.svg);
+    background-size: cover;
+}
+
+.icon-moon::before {
+    background: url(../img/icons/icon-moon.svg);
+    background-size: cover;
+}
+
+.icon-plus::before {
+    background: url(../img/icons/icon-plus.svg);
+    background-size: cover;
+}
+
+.icon-wheel::before {
+    background: url(../img/icons/icon-wheel.svg);
+    background-size: cover;
+}
+
+.icon-phone::before {
+    background: url(../img/icons/icon-phone.svg);
+    background-size: cover;
+}
+
+.icon-link::before {
+    background: url(../img/icons/icon-link.svg);
+    background-size: cover;
+}
+
+.icon-microphone-mute::before {
+    background: url(../img/icons/icon-microphone-mute.svg);
+    background-size: cover;
+}
+
+.icon-microphone-mute-gray::before {
+    background: url(../img/icons/icon-microphone-mute-gray.svg);
+    background-size: cover;
+}
+
+.icon-video-mute::before {
+    background: url(../img/icons/icon-video-mute.svg);
+    background-size: cover;
+}
+
+.icon-translation::before {
+    background: url(../img/icons/icon-translation.svg);
+    background-size: cover;
+}
+
+.icon-chat::before {
+    background: url(../img/icons/icon-chat.svg);
+    background-size: cover;
+}
+
+.icon-menu-horizontal::before {
+    background: url(../img/icons/icon-menu-horizontal.svg);
+    background-size: cover;
+}
+
+.icon-phone-disconnected::before {
+    background: url(../img/icons/icon-phone-disconnected.svg);
+    background-size: cover;
+}
+
+.icon-missed-call::before {
+    background: url(../img/icons/icon-missed-call.svg);
+    background-size: cover;
+}
+
+.icon-menu::before {
+    background: url(../img/icons/icon-menu.svg);
+    background-size: cover;
+}

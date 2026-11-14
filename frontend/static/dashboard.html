@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Videochat</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/typography.css" />
+    <link rel="stylesheet" href="./css/icons.css" />
+    <link rel="stylesheet" href="./css/button.css" />
+    <link rel="stylesheet" href="./css/input.css" />
+    <link rel="stylesheet" href="./css/sidebar.css" />
+    <link rel="stylesheet" href="./css/panel.css">
+    <link rel="stylesheet" href="./css/dashboard.css" />
+    <link rel="stylesheet" href="./css/mobile-nav.css" />
+    <link rel="stylesheet" href="./css/responsive.css">
+</head>
+<body class="dashboard" style="height: 100vh;">
+    <nav class="nav ph-100">
+        <div class="nav__content">
+            <div class="nav__header">
+                <a href="#" class="nav-logo-link">
+                    <img
+                        src="./img/logo-min.svg"
+                        alt="Min Logo"
+                        class="nav-logo"
+                    />
+                </a>
+                <hr class="nav__line" />
+                <ul class="nav-btn-list nav-main">
+                    <li class="nav-list-item btn-list-item">
+                        <button class="btn-icon icon icon-home nav-btn nav-btn_active"></button>
+                    </li>
+                    <li class="nav-list-item btn-list-item">
+                        <button class="btn-icon icon icon-videochat nav-btn"></button>
+                    </li>
+                </ul>
+            </div>
+            <ul class="nav-btn-list nav-footer">
+                <li class="nav-list-item btn-list-item">
+                    <button class="btn-icon icon icon-bell nav-btn"></button>
+                </li>
+                <li class="nav-list-item btn-list-item">
+                    <button class="btn-icon icon icon-moon nav-btn nav-btn_active"></button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <section class="panel sidebar ph-100">
+        <div class="panel-header sidebar__header">
+            <b class="panel-header__title">Friends List</b>
+            <button class="btn-icon icon icon-plus sidebar__add-btn"></button>
+        </div>
+        <div class="panel-main">
+            <ul class="friends">
+                <li class="friend">
+                    <img src="./img/avatars/avatar-woman1.svg" alt="" class="friend__avatar" />
+                    <span class="friend__username">User123</span>
+                </li>
+                <li class="friend">
+                    <img src="./img/avatars/avatar-man2.svg" alt="" class="friend__avatar" />
+                    <span class="friend__username">Lorem Ipsum</span>
+                </li>
+                <li class="friend">
+                    <img src="./img/avatars/avatar-man1.svg" alt="" class="friend__avatar" />
+                    <span class="friend__username">Dolor</span>
+                </li>
+            </ul>
+        </div>
+        <div class="panel-footer">
+            <div class="account">
+                <div class="account__info">
+                    <img src="./img/avatars/avatar-boy.svg" alt="" class="account__avatar" />
+                    <b class="account__username">Username</b>
+                </div>
+                <button class="btn-icon icon icon-wheel account__btn"></button>
+            </div>
+        </div>
+    </section>
+    <section class="options" id="options">
+        <div class="panel">
+            <div class="panel-header">
+                <b class="panel-header__title">My Room</b>
+            </div>
+            <div class="panel-main">
+                <div class="room-options">
+                    <div class="room-options__left">
+                        <form action="" class="room-options__form">
+                            <label
+                                for="title"
+                                class="form-line-label"
+                            >
+                                Title
+                            </label>
+                            <input
+                                type="text"
+                                name="title"
+                                placeholder="Room Title"
+                                id="title"
+                                class="form-line-input"
+                            />
+                            <label
+                                for="link"
+                                class="form-line-label"
+                            >
+                                Link
+                            </label>
+                            <input
+                                type="text"
+                                name="link"
+                                value="https://videochat.com/room/f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                                id="link"
+                                class="form-line-input"
+                            />
+                        </form>
+                        <div class="room-options__btns">
+                            <button class="btn icon icon-phone green-bg room-options-btn">Start Call</button>
+                            <button class="btn icon icon-link blue-bg room-options-btn">Copy Invite Link</button>
+                        </div>
+                    </div>
+                    <div class="room-options__right">
+                        <img src="./img/qr-code.svg" alt="" class="room-options__qr" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
