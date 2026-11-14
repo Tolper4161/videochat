@@ -110,6 +110,9 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
                         await self.send_json(self.json_error(4400, "Пользователь не состоит ни в одной комнате", message_type))
                         return
 
+                    flag = await self.leave()
+                    if not(flag): return
+
                     # Уведомляем всех участников группы об отключении пользователя
                     await self.send_everyone(
                         "chat_message",
@@ -119,8 +122,6 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
                             "participant_id": str(self.participant_id)
                         }
                     )
-
-                    await self.leave()
 
                 case WebSocketType.END_CALL.value:
                     if self.participant_id is None:
@@ -337,16 +338,17 @@ class SignalingConsumer(AsyncJsonWebsocketConsumer):
     async def leave(self):
         if not(await self.room_service.is_owner(self.room_uuid, self.participant_id)):
             await self.close()
-            return
+            return True
         else:
-            await self.send_json(self.json_error(4003, "Отказано в доступе", WebSocketType.LEAVE.value))
+            await self.send_json(self.json_error(4403, "Отказано в доступе", WebSocketType.LEAVE.value))
+            return False
 
     async def end_call(self):
         if await self.room_service.is_owner(self.room_uuid, self.participant_id):
             await self.close()
             return
         else:
-            await self.send_json(self.json_error(4003, "Нет прав для завершения звонка", WebSocketType.END_CALL.value))
+            await self.send_json(self.json_error(4403, "Нет прав для завершения звонка", WebSocketType.END_CALL.value))
 
     # Метод для отправки сообщений всем участникам группы.
     # WebSocketType.EXCLUDED_PARTICIPANT_ID - participant_id того consumer,
