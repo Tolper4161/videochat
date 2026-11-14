@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Videochat</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/typography.css" />
+    <link rel="stylesheet" href="./css/icons.css" />
+    <link rel="stylesheet" href="./css/button.css" />
+    <link rel="stylesheet" href="./css/input.css" />
+    <link rel="stylesheet" href="./css/sidebar.css" />
+    <link rel="stylesheet" href="./css/panel.css">
+    <link rel="stylesheet" href="./css/dashboard.css" />
+    <link rel="stylesheet" href="./css/control.css" />
+    <link rel="stylesheet" href="./css/no-access.css" />
+    <link rel="stylesheet" href="./css/mobile-nav.css">
+    <link rel="stylesheet" href="./css/responsive.css">
+</head>
+<body class="dashboard" style="height: 100vh;">
+    <nav class="nav ph-100">
+        <div class="nav__content">
+            <div class="nav__header">
+                <a href="#" class="nav-logo-link">
+                    <img
+                        src="./img/logo-min.svg"
+                        alt="Min Logo"
+                        class="nav-logo"
+                    />
+                </a>
+                <hr class="nav__line" />
+                <ul class="nav-btn-list nav-main">
+                    <li class="nav-list-item btn-list-item">
+                        <button class="btn-icon icon icon-home nav-btn nav-btn_active"></button>
+                    </li>
+                    <li class="nav-list-item btn-list-item">
+                        <button class="btn-icon icon icon-videochat nav-btn"></button>
+                    </li>
+                </ul>
+            </div>
+            <ul class="nav-btn-list nav-footer">
+                <li class="nav-list-item btn-list-item">
+                    <button class="btn-icon icon icon-bell nav-btn"></button>
+                </li>
+                <li class="nav-list-item btn-list-item">
+                    <button class="btn-icon icon icon-moon nav-btn nav-btn_active"></button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <nav class="mobile-nav "><!-- closed -->
+        <div class="mobile-nav__header">
+            <a href="#" class="nav-logo-link">
+                <img
+                    src="./img/logo-min.svg"
+                    alt="Min Logo"
+                    class="nav-logo"
+                />
+            </a>
+            <button class="btn-icon icon icon-menu gray-bg mobile-nav__burger-btn"></button>
+        </div>
+        <div class="mobile-nav__content ">
+            <ul class="mobile-nav-btn-list">
+                <li class="mobile-nav-btn-list-item"><button class="mobile-nav-btn">Dashboard</button></li>
+                <li class="mobile-nav-btn-list-item"><button class="mobile-nav-btn">My Room</button></li>
+            </ul>
+            <div class="mobile-nav__bottom"></div>
+        </div>
+    </nav>
+    <section class="panel sidebar ph-100">
+        <div class="panel-header sidebar__header">
+            <b class="panel-header__title">Friends List</b>
+            <button class="btn-icon icon icon-plus sidebar__add-btn"></button>
+        </div>
+        <div class="panel-main">
+            <ul class="friends">
+                <li class="friend">
+                    <img src="./img/avatars/avatar-woman1.svg" alt="" class="friend__avatar" />
+                    <span class="friend__username">User123</span>
+                </li>
+                <li class="friend">
+                    <img src="./img/avatars/avatar-man2.svg" alt="" class="friend__avatar" />
+                    <span class="friend__username">Lorem Ipsum</span>
+                </li>
+                <li class="friend">
+                    <img src="./img/avatars/avatar-man1.svg" alt="" class="friend__avatar" />
+                    <span class="friend__username">Dolor</span>
+                </li>
+            </ul>
+        </div>
+        <div class="panel-footer">
+            <div class="account">
+                <div class="account__info">
+                    <img src="./img/avatars/avatar-boy.svg" alt="" class="account__avatar" />
+                    <b class="account__username">Username</b>
+                </div>
+                <button class="btn-icon icon icon-wheel account__btn"></button>
+            </div>
+        </div>
+    </section>
+    <div class="no-access">
+        <div class="panel no-access__panel">
+            <div class="no-access__content">
+                <div class="no-access__info">
+                    <div class="icon icon-missed-call no-access__icon"></div>
+                    <div class="no-access__heading">
+                        <h1 class="no-access__title">Tolper4161 Room</h1>
+                        <h2 class="no-access__subtitle">No active call</h2>
+                    </div>
+                    <div class="no-access__texting">
+                        <p class="no-access__text">There is no active call in this room right now</p>
+                        <span class="no-access__subtext">Ask the room owner to start a call, or come back later</span>
+                    </div>
+                </div>
+                <div class="no-access__btns">
+                    <button class="btn blue-bg no-access__btn">Check Again</button>
+                    <button class="btn gray-bg no-access__btn">Return to dashboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

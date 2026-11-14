@@ -1,4 +1,5 @@
-# ===== Environment =====
+
+# ===== Environment / Secrets =====
 .env
 .env.*
 !.env.example
@@ -11,6 +12,8 @@ __pycache__/
 *$py.class
 *.so
 .Python
+
+# Python build / distribution
 build/
 develop-eggs/
 dist/
@@ -42,19 +45,34 @@ venv.bak/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
-/media/
-/staticfiles/
-/static/
-/static_root/
+
+# User uploaded media (local files)
+media/
+
+# Generated static files
+staticfiles/
+static_root/
+
+# NOTE:
+# Do not ignore static/ if it contains your source CSS, JS or images.
+# If static/ contains only generated files, you can ignore it.
+
+# ===== Django / Python caches =====
+__pycache__/
+.pytest_cache/
+.cache/
+*.mo
 
 # ===== Testing / coverage =====
-.pytest_cache/
 .coverage
 .coverage.*
 htmlcov/
 .tox/
 .nox/
 .hypothesis/
+test-results/
+playwright-report/
+allure-results/
 
 # ===== Type checkers / linters =====
 .mypy_cache/
@@ -62,6 +80,44 @@ htmlcov/
 dmypy.json
 .ruff_cache/
 .flake8
+
+# ===== Node.js / React / Vite =====
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+build/
+
+# Vite cache
+.vite/
+
+# Other caches
+.npm/
+.eslintcache
+.stylelintcache
+.parcel-cache/
+.turbo/
+
+# ===== Environment files (Frontend) =====
+# Keep .env.example in Git
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ===== Logs =====
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ===== Testing / Frontend =====
+coverage/
+.nyc_output/
+
+# ===== TypeScript =====
+*.tsbuildinfo
 
 # ===== PyCharm / VS Code / IDE =====
 .idea/
@@ -77,7 +133,15 @@ dmypy.json
 .DS_Store
 Thumbs.db
 desktop.ini
+$RECYCLE.BIN/
 
 # ===== Docker =====
 *.pid
 docker-compose.override.yml
+
+# ===== Temporary files =====
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej

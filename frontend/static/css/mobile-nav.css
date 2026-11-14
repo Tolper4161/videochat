@@ -1,0 +1,47 @@
+.mobile-nav {
+    display: none;
+    position: fixed;
+    left: 0px;
+    right: 0px;
+    top: 0px;
+    bottom: 0px;
+    background-color: var(--gray-1);
+}
+
+.mobile-nav.closed {
+    bottom: auto;
+}
+
+.mobile-nav__header {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+}
+
+.mobile-nav__burger-btn {
+    padding: 0.75rem;
+    border-radius: 100%;
+    line-height: 0px;
+}
+
+.mobile-nav__content {
+    height: 100%;
+}
+
+.mobile-nav.closed .mobile-nav__content {
+    display: none;
+}
+
+.mobile-nav-btn-list {
+    padding: 0px;
+    margin: 0px;
+    list-style-type: none;
+}
+
+.mobile-nav-btn-list-item {
+
+}
+
+.mobile-nav-btn {
+
+}

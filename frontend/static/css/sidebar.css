@@ -1,0 +1,116 @@
+.sidebar__add-btn::before {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.sidebar__main {
+    height: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+}
+
+.friends {
+    padding: 0px;
+    padding-top: 0.5rem;
+    margin: 0px;
+    list-style-type: none;
+}
+
+.friend {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.5rem 0px;
+}
+
+.friend__avatar {
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--gray-4);
+    border-radius: 100%;
+}
+
+.friend__username {
+    font-size: 0.875rem;
+    line-height: 1.5em;
+}
+
+.sidebar__footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--gray-3);
+}
+
+.account {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.account__info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem
+}
+
+.account__avatar {
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid var(--gray-3);
+    border-radius: 100%;
+}
+
+.account__username {
+    color: var(--white);
+    font-weight: 600;
+    line-height: 1.5em;
+}
+
+.account__btn {}
+
+.room-options {
+    display: flex;
+    gap: 1.5rem;
+    padding-top: 2rem;
+}
+
+.room-options__left {
+    width: 100%;
+}
+
+.room-options__qr {
+    max-width: 220px;
+    max-height: 220px;
+    border-radius: 0.75rem;
+}
+
+/* .room-options__header {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--gray-3);
+}
+
+.room-options__main {
+    padding-bottom: 1rem;
+}
+ */
+.room-options__form {
+    display: grid;
+    grid-template-columns: 212px 1fr;
+    align-items: center;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+}
+
+.room-options__btns {
+    display: flex;
+    gap: 1rem;
+}
+
+.room-options-btn {
+    flex: 1;
+    font-weight: 500;
+}

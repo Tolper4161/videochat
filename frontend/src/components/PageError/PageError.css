@@ -1,0 +1,61 @@
+.error {
+    width: 100%;
+    height: 100%;
+}
+
+.error__content {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.error__code {
+    font-size: 25rem;
+    color: var(--gray-2);
+    font-weight: 600;
+    line-height: 100%;
+    letter-spacing: -4%;
+    opacity: 32%;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none;    /* старый Firefox */
+    -ms-user-select: none;     /* IE/Edge */
+    user-select: none;         /* стандарт */
+}
+
+.error__heading {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.error__info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-flow: column;
+    gap: 1.5rem;
+    width: 100%;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.error__name {
+    font-size: 2rem;
+    line-height: 1.25em;
+}
+
+.error__msg {
+    width: max-content;
+    color: var(--white);
+    font-weight: 500;
+    line-height: 1.5em;
+    opacity: 80%;
+}

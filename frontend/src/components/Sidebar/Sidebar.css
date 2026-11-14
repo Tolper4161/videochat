@@ -1,0 +1,18 @@
+.sidebar__add-btn::before {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.sidebar__main {
+    height: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+}
+
+.sidebar__footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--gray-3);
+}
